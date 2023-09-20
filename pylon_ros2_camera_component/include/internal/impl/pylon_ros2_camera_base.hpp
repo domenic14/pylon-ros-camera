@@ -2901,6 +2901,11 @@ std::string PylonROS2CameraImpl<CameraTraitT>::grabbingStarting() const
 {
     try
     {
+        int64_t timestamp_in_nsec = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+        int64_t timestamp_in_sec = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+        int64_t nsec_to_wait = ((timestamp_in_sec + 1) * 1e9 - timestamp_in_nsec) + 17e6;
+        std::this_thread::sleep_for(std::chrono::nanoseconds(nsec_to_wait));
+        
         if(grab_strategy == 0) {
            cam_->StartGrabbing(Pylon::EGrabStrategy::GrabStrategy_OneByOne); 
         } else if (grab_strategy == 1) {
@@ -4119,7 +4124,7 @@ std::string PylonROS2CameraImpl<CameraTraitT>::enablePTP(const bool& value)
             }
             else
             {
-                RCLCPP_ERROR_STREAM(LOGGER_BASE, "Error while trying to enable/disable PTP. The connected camera does not support this feature.");
+                RCLCPP_ERROR_STREAM(LOGGER_BASE, "ACE Error while trying to enable/disable PTP. The connected camera does not support this feature.");
                 return "The connected camera does not support this feature";
             }
         }

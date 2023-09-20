@@ -30,6 +30,7 @@
 
 #include <string>
 #include <vector>
+#include <ctime>
 
 namespace pylon_ros2_camera
 {
@@ -192,13 +193,26 @@ PylonROS2Camera* PylonROS2Camera::create(const std::string& device_user_id_to_op
                     RCLCPP_INFO_STREAM(LOGGER, "Found camera device!"
                                             << " Device Model: " << it->GetModelName()
                                             << " with Device User Id: " << it->GetUserDefinedName());
-                    
+
                     PYLON_CAM_TYPE cam_type = detectPylonCamType(*it);
                     if (cam_type != UNKNOWN)
                     {
                         PylonROS2Camera* new_cam_ptr = createFromDevice(cam_type, tl_factory.CreateDevice(*it));
                         new_cam_ptr->device_user_id_ = it->GetUserDefinedName();
                         
+                        new_cam_ptr->enablePTP(true);
+                        
+                        const std::time_t desired_time = std::time(nullptr) + 2;
+                        const long long shifted_time = desired_time * 1e9;
+                        const long long upper = shifted_time >> 32;
+                        const long long lower = shifted_time & 0xFFFFFFFF;
+
+                        new_cam_ptr->setSyncFreeRunTimerStartTimeLow(static_cast<int>(lower));
+                        new_cam_ptr->setSyncFreeRunTimerStartTimeHigh(static_cast<int>(upper));
+                        new_cam_ptr->setSyncFreeRunTimerTriggerRateAbs(10);
+                        new_cam_ptr->updateSyncFreeRunTimer();
+                        new_cam_ptr->enableSyncFreeRunTimer(true);
+
                         return new_cam_ptr;
                     }
                 }

@@ -968,7 +968,7 @@ std::string PylonROS2GigEAce2Camera::enablePTP(const bool& value)
         }
         else 
         {
-            RCLCPP_ERROR_STREAM(LOGGER_GIGE_ACE2, "Error while trying to enable/disable PTP. The connected camera does not support this feature.");
+            RCLCPP_ERROR_STREAM(LOGGER_GIGE_ACE2, "ACE 2 Error while trying to enable/disable PTP. The connected camera does not support this feature.");
             return "The connected camera does not support this feature";
         }
 
